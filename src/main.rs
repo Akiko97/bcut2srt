@@ -38,22 +38,7 @@ fn main() {
         .expect("parameter `output` is required");
     match read_file_to_string(input_file) {
         Ok(contents) => {
-            let data: BCutData = serde_json::from_str(contents.as_str())
-                .expect("Could not parse BCut JSON");
-            let mut srt_blks = vec![];
-            for track in data.tracks {
-                if !track.clips.is_empty() {
-                    if track.clips[0].asset_info.display_name != "字幕" { break }
-                }
-                track.clips.iter().for_each(|clip| {
-                    let blk = SrtBlock::new(
-                        SrtTime::new(clip.start, clip.start + clip.duration),
-                        clip.asset_info.content.clone(),
-                    );
-                    srt_blks.push(blk);
-                });
-            }
-            let srt = srt_blks.to_string();
+            let srt = bcut2srt(&contents);
             match write_file_to_string(output_file, &srt) {
                 Ok(_) => println!("Successfully wrote SRT to file {}", output_file.display()),
                 Err(e) => eprintln!("Error writing output file: {}", e),
@@ -61,6 +46,25 @@ fn main() {
         }
         Err(e) => eprintln!("Error reading input file: {}", e),
     }
+}
+
+fn bcut2srt(json: &String) -> String {
+    let data: BCutData = serde_json::from_str(json.as_str())
+        .expect("Could not parse BCut JSON");
+    let mut srt_blks = vec![];
+    for track in data.tracks {
+        if !track.clips.is_empty() {
+            if track.clips[0].asset_info.display_name != "字幕" { break }
+        }
+        track.clips.iter().for_each(|clip| {
+            let blk = SrtBlock::new(
+                SrtTime::new(clip.start, clip.start + clip.duration),
+                clip.asset_info.content.clone(),
+            );
+            srt_blks.push(blk);
+        });
+    }
+    srt_blks.to_string()
 }
 
 fn read_file_to_string(path: &PathBuf) -> io::Result<String> {
