@@ -1,0 +1,17 @@
+[package]
+name = "bcut2srt"
+version = "0.1.0"
+edition = "2021"
+authors = ["GitHub@Akiko97 <mud.miscue_0l@icloud.com>"]
+license = "MIT"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clap = "4.5"
+
+[profile.release]
+strip = true
+lto = true
+opt-level = 3
+codegen-units = 1
